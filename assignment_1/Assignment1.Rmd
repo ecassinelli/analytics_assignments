@@ -1,0 +1,163 @@
+---
+title: "Assignment 1"
+subtitle: "CMS2 529"
+author: "Eduardo Cassinelli"
+output:
+  html_document:
+    fig_height: 5
+    fig_width: 8
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      collapsed: false
+    number_sections: false
+    theme: readable
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Instructions
+
+Please submit both the `Rmd` and `html` file produced by *knitting* this document with your modifications.
+
+
+# (5 points) Question 1: List possible predictor variables
+
+> For cases 3 and 4 in [Section 1.5](https://otexts.com/fpp2/case-studies.html#case-studies), list the possible predictor variables that might be useful, assuming that the relevant data are available.
+
+## Solution
+
+### Case 3:
+1. Type of vehicle
+2. Brand of vehicle
+3. Previous re-sales of the vehicles (By type and brand)
+4. Location where vehicles are being sold
+
+### Case 4:
+1. Holidays
+2. Sporting events
+3. Competition behavior
+4. Advertising campaigns
+5. Weather
+
+# (5 points) Question 2: Describing the five steps of forecasting
+> For case 3 in [Section 1.5](https://otexts.com/fpp2/case-studies.html#case-studies), describe the five steps of forecasting in the context of this project.
+
+## Solution 
+
+### Case 3
+1. Defining the problem:
+Better forecast the resale value of vehicles
+How the forecasted re-sale value will be used
+Communicate with the people in charge of the data
+
+2.Gather information:
+Gather statistical data
+  - historical sales data
+  - historical prices data
+  - stock data
+Collect information and expertise from sales, IT and all other relevant departments in the company.
+
+3.Exploratory Analysis:
+Graphing all the data to see if the re-sale value of cars is indeed is influenced by location, type of vehicles, brands.
+Is there a strong relation between these variables and the re-sale value? Are there any outliers?.
+
+4.Choosing and fitting model:
+Choose and develop models if:
+  -there is enough historical data of re-sales
+  -there is a strong relationship between the other variables
+
+5.Using and evaluating a forecasting model:
+Using the model to get the forecasted data on re-sale values and comparing it once the data for the forecasted period is available to see if the model performed well.
+
+# (0 points) Question 3: Quarterly Beer Production in Australia (1956 - Q2 2010)
+
+> The question is not to be submitted for points. It includes information that will be helpful in completing the rest of the assignment. I encourage you to run through each step of the code blocks below. Note that you may change `eval=FALSE` to `eval=TRUE` in order to evaluate the code.
+
+Please review the file `Datasets/AusBeer.csv` in the `Content` section of [MyCourses](https://www.mcgill.ca/mycourses), in Excel or notepad. It contains 4 columns of data (`Time`, `Year`, `Quarter`, Beer.Production`), giving quarterly beer production figures in Australia from 1956 through to the 2nd quarter of 2010. The beer production figure is in megalitres (ML).
+
+We will explore this data in R by using the command `read.csv` that imports *command-separated-values (CSV)* files into an R object called a data frame. I encourage you to go through these commands line-by-line in R Studio
+
+##Comment: Professor, I didn't know if I should change the path before sending it, so I left it as it is.
+
+```{r beer, echo=TRUE, eval=TRUE}
+require(fpp2)
+# `pathToBeer` should be changed to reflect where you can find `AusBeer.csv`
+# on your computer
+pathToBeer <- "C:\\Users\\Eduardo\\OneDrive - McGill University\\3 - Fall 2020\\Intro to Data Analytics\\Assignment 1\\AusBeer.csv"
+AusBeer <- read.csv(file=pathToBeer)
+View(AusBeer)
+names(AusBeer)
+str(AusBeer)
+Beer <- AusBeer$Beer.Production
+Beer <- ts(Beer, frequency=4,start=1956)
+autoplot(Beer) + ggtitle("Quarterly Australian Beer Production (1956 - 2010)") + 
+  xlab("Year") + ylab("Beer Production (ML)")
+```
+
+Here we read the `AusBeer.csv` file into a data frame called `AusBeer`. The `names(data frame name)` command show the names of the variables/columns in the data frame. We refer to individual variables by typing the name of the data frame followed by a `$` and the name of variable as we do above with the `AusBeer$Beer.Production` column. 
+
+The `Beer.Production` column is a time series containing the quarterly (frequency=4) beer production starting in 1956. The command `ts` turns a variable into a time series object. Time series objects in R can then be supplied to other functions in R that will allow us to plot the time series, summarize its structure, fit models to the time series, and make forecasts. Here we used the command autoplot from the forecast library, developed by the textbook author, to create a basic plot of this time series. We will cover time series graphics in more detail in Chapter 2.
+
+The `window` command to subset the time series to only consider 1995 to 2010 with the subset being stored in a new time series objects `Beersub` which can then be plotted using `autoplot()`
+
+```{r beer-window, echo=TRUE, eval=TRUE}
+Beersub <- window(Beer,start=1995)
+autoplot(Beersub)+ggtitle("Quarterly Australian Beer Production (1995 - 2010)") + xlab("Year") + ylab("Beer Production (ML)")
+```
+
+# (10 points) Question 4: CO2 levels at Mauna Loa Observatory (1959 -- 1997)
+
+The file `CO2_Mauna_Loa.csv` found in the Dataset content section in [myCourses](https://www.mcgill.ca/mycourses) contains monthly measurements of carbon dioxide levels at the Mauna Loa Observatory from 1959 to 1997 in parts per million (ppm). With the help of the exercise above, please:
+
+  1. Download, load and describe the names of the columns in the CSV file using R code.
+  1. Determine which column contains the CO2 levels and load the data into a time series object.
+  1. Plot the time series object using:
+      - **Title**: CO2 Levels - Mauna Loa Observatory (1959-1997)
+      - **X label**: Year
+      - **Y Label**: CO2 Concentration (ppm)
+  1. Plot the same data but only for those dates in the 90's.
+      
+## Solution
+> Please submit your work in this section.
+
+**Load and describe the names of the columns in the CSV file using R code.**
+
+##Comment: Professor, I didn't know if I should change the path before sending it, so I left it as it is.
+
+```{r co2-load, echo=TRUE, eval=TRUE}
+require(fpp2)
+pathToCO2Mauna <- "C:\\Users\\Eduardo\\OneDrive - McGill University\\3 - Fall 2020\\Intro to Data Analytics\\Assignment 1\\CO2_Mauna_Loa.csv"
+CO2_Mauna_Loa <- read.csv(file=pathToCO2Mauna)
+View(CO2_Mauna_Loa)
+names(CO2_Mauna_Loa)
+```
+
+**Determine which column contains the CO2 levels and load the data into a time series object.**
+
+```{r co2-describe, echo=TRUE, eval=TRUE}
+str(CO2_Mauna_Loa)
+CO2_Levels <- CO2_Mauna_Loa$CO2
+CO2_Levels <- ts(CO2_Levels, frequency=12,start=1959)
+```
+
+Plot the time series object using:
+    
+  - **Title**: CO2 Levels - Mauna Loa Observatory (1959-1997)
+  - **X label**: Year
+  - **Y Label**: CO2 Concentration (ppm)
+
+```{r co2-plot, echo=TRUE, eval=TRUE}
+autoplot(CO2_Levels) + ggtitle("CO2 Levels - Mauna Loa Observatory (1959-1997)") + 
+  xlab("Year") + ylab("CO2 Concentration (ppm)")
+```
+
+**Plot the same data but only for those dates in the 90's.**
+
+```{r co2-plot90, echo=TRUE, eval=TRUE}
+CO2_Levels_sub <- window(CO2_Levels,start=1990)
+autoplot(CO2_Levels_sub)+ggtitle("CO2 Levels - Mauna Loa Observatory (1990-1997)") + xlab("Year") + ylab("CO2 Concentration (ppm)")
+```

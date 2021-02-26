@@ -1,0 +1,198 @@
+---
+title: "Assignment 2"
+author: "Eduardo Casinelli"
+subtitle: CMS2 529
+output:
+  html_document:
+    fig_height: 5
+    fig_width: 8
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      collapsed: no
+    number_sections: yes
+    theme: readable
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '1'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(fpp2)
+options(digits=5)
+require('fpp2')
+```
+
+Please submit both the `Rmd` and `html` file produced by *knitting* this document with your modifications. Be sure to change the name of the author above.
+
+
+# [12 points] Compare arrivals from different countries
+
+The `arrivals` data set comprises quarterly international arrivals (in thousands) to Australia from Japan, New Zealand, UK and the US. In the subsections below, you will:
+
+  * Use `autoplot()`, `ggseasonplot()` and `ggsubseriesplot()` to compare the differences between the arrivals from these four countries.
+  * Identify any unusual observations.
+  
+Please use the following code sample to support answering the questions below
+
+```{r arrivals-sample, echo=FALSE, eval=FALSE}
+# Load the fpp2 module
+require('fpp2')
+
+# Describe arrivals data set
+str(arrivals)
+
+# List column names
+colnames(arrivals)
+
+# View dataset
+View(arrivals)
+
+# Plot all arrivals on one faceted chart
+autoplot(arrivals,facets=T) 
+  + ggtitle("International Arrivals to Australia in 1000's (Japan, NZ, UK, US)") 
+  + xlab("Year")
+  + ylab("Arrivals (in 1000's)")
+
+# Focus on Japan
+autoplot(arrivals[,"Japan"]) + ggtitle("Japan Arrivals") 
+  + xlab("Year") + ylab("Arrivals (1000's)")
+
+ggseasonplot(arrivals[,"Japan"])+ ggtitle("Seasonplot for Japan Arrivals") 
+  + xlab("Year") + ylab("Arrivals (1000's)")
+
+ggsubseriesplot(arrivals[,"Japan"]) 
+  + ggtitle("Subseries Plot for Japan Arrivals") + xlab("Year") 
+  + ylab("Arrivals (1000's)")
+```
+
+  1. [2 points] Plot all four countries on a single properly labeled time series plots.
+
+  1. [4 points] Create a properly labeled season plot (`ggseasonplot`) and subseries plots (`ggsubseriesplot`) for each of the four countries.
+
+  1. [4 points] Compare and contrast the arrivals to Australia from the four countries using the plots constructed above.
+
+  1. [2 points] Create a `ggseasonplot` using the polar coordinate for the number of arrivals to Australia from the US. Please identify the outlier's year and quarter. Can you explain it? 
+
+  
+## [2 points] Solution: Plot all four countries on a single properly labeled time series plots
+
+```{r fpp2, echo=FALSE, eval=TRUE}
+require('fpp2')
+```
+
+
+```{r arrivals-plot, echo=TRUE, eval=TRUE}
+arrivals_ts <- ts(arrivals, frequency=4, start=1981)
+autoplot(arrivals_ts) + ggtitle("Quarterly International Arrivals to Australia (in thoudsands)") + xlab('Year') + ylab("Arrivals (in thousands)")
+```
+
+```{r arrivals-timeSeriesFaceted, echo=TRUE, eval=TRUE}
+arrivals_ts <- ts(arrivals, frequency=4, start=1981)
+autoplot(arrivals_ts, facets=T) + ggtitle("Quarterly International Arrivals to Australia (in thoudsands)") + xlab('Year') + ylab("Arrivals (in thousands)")
+```
+
+## [4 points] Solution: Create a properly labeled season plot (`ggseasonplot`) and subseries plots (`ggsubseriesplot`) for each of the four countries.
+
+## Japan Plots
+```{r arrivals-seasonplot-japan, echo=TRUE, eval=TRUE}
+ggseasonplot(arrivals[,"Japan"]) + ggtitle("Seasonplot for Japan Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+```{r arrivals-subplots-japan, echo=TRUE, eval=TRUE}
+ggsubseriesplot(arrivals[,"Japan"]) + ggtitle("Subseries Plot for Japan Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+## New Zealand Plots
+```{r arrivals-seasonplot-nz, echo=TRUE, eval=TRUE}
+ggseasonplot(arrivals[,"NZ"]) + ggtitle("Seasonplot for New Zeland Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+```{r arrivals-subplots-nz, echo=TRUE, eval=TRUE}
+ggsubseriesplot(arrivals[,"NZ"]) + ggtitle("Subseries Plot for New Zeland Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+## United Kingdom Plots
+```{r arrivals-seasonplots-uk, echo=TRUE, eval=TRUE}
+ggseasonplot(arrivals[,"UK"]) + ggtitle("Seasonplot for United Kingdom Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+```{r arrivals-subplots-uk, echo=TRUE, eval=TRUE}
+ggsubseriesplot(arrivals[,"UK"]) + ggtitle("Subseries Plot for United Kingdom Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+## United States Plots
+```{r arrivals-seasonplots-us, echo=TRUE, eval=TRUE}
+ggseasonplot(arrivals[,"US"]) + ggtitle("Seasonplot for United States Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+```{r arrivals-subplots-us, echo=TRUE, eval=TRUE}
+ggsubseriesplot(arrivals[,"US"]) + ggtitle("Subseries Plot for United States Arrivals") + xlab("Quarter") + ylab("Arrivals (1000's)")
+```
+
+
+## [4 points] Solution: Compare and constrast the arrivals to Australia from the four contries using the plots constructed above.
+
+> Answer:
+Looking at Season Plots we can see some similarity between Japan and New Zealand on Q3 and Q4 starting on the 1990s, probably because of the proximity of these countries. However, as seen in the subseries plots for both countries, New Zealand has had incremental arrivals throughout all seasons when we compare them year by year in contrast to Japan where we see a decrease on all seasons.
+>
+For UK and United States, we can see a similarity, especially around Q4, probably because of the similarity of the holidays in both countries. 
+>
+We can see the seasonality of the data in the subseries plot of each country. However, is worth noting that japan only has some seasonality as its means are almost the same for all quarters except Q2. 
+
+
+## [2 points] Solution: Create a `ggseasonplot` using the polar coordinate for the number of arrivals to Australia from the US. Please identify the outlier's year and quarter. Can you explain it? 
+
+```{r arrivals-seasonplot_polar, echo=TRUE, eval=TRUE}
+ggseasonplot(arrivals[,"US"], polar=TRUE) + ggtitle("Subseries Plot for United States Arrivals")
+```
+> Identify and explain the outlier
+
+> Answer:
+The outlier is the year 2000 in the Q3 quarter. We can see in the graph that the line for this year breaks the figure of the circle and goes beyond all the bluelines, surpasing the purple lines. My best guess is because of the olympics in the year 2000.
+
+
+# [8 points] Random or Not
+
+Using `autoplot()` and `ggAcf()` determine whether each of the following datasets can be characterized as white noise:
+
+  1. [4 points] Pigs slaughtered in Victoria, Australia from 1990 onward. Please narrow the dataset using `pigs90s <- window(pigs, start=1990)` to focus on the 90's.
+  
+  1. [4 points] Daily changes in the Down Jones Index. Note that `dh` contains 292 consecutive trading days so you can use `ddj <- diff(dj)` to compute the daily changes in the index.
+  
+## [2 points] Solution: Pigs slaughtered in Victoria, Australia from 1990 onward
+
+```{r random-pigs-plot, echo=TRUE, eval=TRUE}
+pigs90s <- window(pigs, start=1990)
+autoplot(pigs90s) + ggtitle("Subseries Plot for Pigs Slaughtered in Victoria, Australia 1990 onward") + xlab("Year") + ylab("Number of Pigs")
+```
+
+```{r random-pigs-Acf-plot, echo=TRUE, eval=TRUE}
+ggAcf(pigs90s, lag.max=68) + ggtitle("ACF Plot for Pigs Slaughtered in Victoria, Australia 1990 onward with 68 ocurrences")
+```
+
+> Would you characterize the data as being random? Why?
+> 
+Answer: 
+Here we see that there are 68 occurrences (Monthly until 1995 for which we have 8 months). We can see here that three of the largest spikes cross the upper bound, which is less than 5% (3/68 = 0.04411). So this can be characterized as white noise since is less than 5%, but is very close to not be white noise.
+
+## [2 points] Solution: Daily changes in the Down Jones Index
+
+```{r random-dj-plot, echo=TRUE, eval=TRUE}
+ddj <- diff(dj)
+
+autoplot(ddj) + ggtitle("Subseries Plot for Daily Changes in the Down Jones Index") + xlab("Days") + ylab("DDJ")
+```
+
+```{r random-dj-Acf-plot, echo=TRUE, eval=TRUE}
+ggAcf(ddj, lag.max=291) + ggtitle("ACF Plot for Daily Changes in the Down Jones Index")
+```
+
+## [4 points] Daily changes in the Down Jones Index. Note that `dh` contains 292 consecutive trading days so you can use `ddj <- diff(dj)` to compute the daily changes in the index.
+
+> Would you characterize the data as being random? Why?
+> 
+Answer: 
+Here we see that there are 291 occurrences. We can see here that six of the largest spikes cross the upper bound, which is less than 5% (6/291 = 0.02061). So this can be characterized as white noise since is less than 5%.

@@ -1,0 +1,159 @@
+---
+title: "Assignment 4"
+author: "Eduardo Cassinelli"
+subtitle: CMS2 529
+output:
+  html_document:
+    fig_height: 5
+    fig_width: 8
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      collapsed: no
+    number_sections: yes
+    theme: readable
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '1'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(fpp2)
+options(digits=5)
+install.packages("readxl")
+install.packages("seasonal")
+library(seasonal)
+```
+
+Please submit a `zip` file including both the `Rmd` and `html` file produced by *knitting* this document with your modifications. Be sure to change the name of the author above.
+
+
+# [2 points] Reading and decomposing retail data to expose hidden features
+
+The file, `retail.xslx`, found on MyCourses, represent retail sales in various categories for different Australian states.
+
+You can read the data into R with the following script:
+
+```{r eval=TRUE}
+retaildata <- readxl::read_excel("/home/eduardo/Documents/projects/analytics_assignments/assignment_4/retail.xlsx", skip=1)
+```
+The second argument (skip=1) is required because the Excel sheet has two header rows.
+
+We are interested in the column identified by *Series ID* `A3349873A`. To read it as a timeseries object, you should:
+
+```{r eval=TRUE}
+ retail.ts <- ts(retaildata[,"A3349873A"],
+  frequency=12, start=c(1982,4))
+```
+
+Using the timeseries, `retail.ts`, decompose the series using X11. Does it reveal any outliers, or unusual features that are not immediately apparent when looking at the plot of the timeseries?
+
+## Solution
+
+```{r retail-decomposition, eval=TRUE}
+fit_retail <- seas(retail.ts, x11="")
+autoplot(fit_retail) +
+  ggtitle("Decomposition of the retail data time series - X11")
+```
+
+**We can see in the graph that de data has a positive trend and definitely  seasonality. Looking at the reminders graph, there seems to be some outliers in the following years: 1990, 1995, 2000; and some between 2010 and 2015. The unusual feature that is hard to see when looking at the timeseries plot is that seasonality appears to diminish over time as trend increases.**
+
+
+# [3 points] Analyzing the decomposed Australian labour force
+
+The figures below show the result of decomposing the number of persons in the civilian labour force in Australia each month from February 1978 to August 1995.
+
+![Decomposition of the number of persons in the civilian labour force in Australia each month from February 1978 to August 1995](/home/eduardo/Documents/projects/analytics_assignments/assignment_4/labour-1.png)
+
+![Seasonal component from the decomposition shown in the previous figure](/home/eduardo/Documents/projects/analytics_assignments/assignment_4/labour-2.png)
+
+> [2 points] Write about 3–5 sentences describing the results of the decomposition. Pay particular attention to the scales of the graphs in making your interpretation.
+
+**There seems to be a positive trend in the data. We can see that we have some outliers somewhere between 1990 and 1994. Looking at the seasonal component, there seems to be very little variation of seasonality.**
+
+
+> [1 point] Is the recession of 1991/1992 visible in the estimated components?
+
+**Yes, we can see that in the remainder and even in the graph from the data.**
+  
+  
+# [8 Points] Decomposing Canadian gas production using several methods
+
+This exercise uses the `cangas` data (monthly Canadian gas production in billions of cubic metres, January 1960 -- February 2005).
+
+## [2 points] Explore seasonality
+
+Plot the data using `autoplot`, `ggsubseriesplot` and `ggseasonplot` to look at the effect of the changing seasonality over time. What do you think is causing it to change so much?
+
+```{r cangas-explore, eval=TRUE}
+autoplot(cangas)
+ggsubseriesplot(cangas)
+ggseasonplot(cangas)
+```
+
+**Looking at the timeseries plot, we can see upwards trend of the data. Also there is a strong seasonality that can be backed up but the subseries and seasonal plots. It seems gas production is decreases from May to August and start increasing after that, probably because the climate is a strong factor in gas production. We can see a change in this seasonality over the years, probably because of the changes in climate.**
+
+## [2 points] Decompose with STL
+
+Do an STL decomposition of the data. You will need to choose `s.window` to allow for the changing shape of the seasonal component.
+
+```{r cangas-stl, eval=TRUE}
+fit_cangas_stl <- stl(cangas, s.window=13, robust=TRUE)
+autoplot(fit_cangas_stl) +
+  ggtitle("Decomposition of Canadian Gas Production Time Series -- STL") +
+  xlab("Year")
+```
+
+## [4 points] Compare STL with SEATS and X11
+
+Compare the results with those obtained using SEATS and X11. How are they different?
+
+```{r cangas-seas, eval=TRUE}
+fit_cangas_seas <- seas(cangas)
+autoplot(fit_cangas_seas) +
+  ggtitle("Decomposition of Canadian Gas Production Time Series -- SEATS") +
+  xlab("Year")
+```
+
+```{r cangas-x11, eval=TRUE}
+fit_cangas_x11 <- seas(cangas, x11="")
+autoplot(fit_cangas_x11) +
+  ggtitle("Decomposition of Canadian Gas Production Time Series -- X11") +
+  xlab("Year")
+```
+**Both SEATS and X11 have very similar trend and seasonality components, while the seasonality component is different in STL. The reminder data is much more smaller in STL, where we have less outliers, being the decomposition that best fits the data, while X11 and SEATS have larger remainders.**
+
+# [2 points] Forecasting Sales
+
+Use `stlf` to produce forecasts of the `fancy` series with either `method="naive"` or `method="rwdrift"`, whichever is most appropriate. Use the `lambda` argument if you think a Box-Cox transformation is required.
+
+## Solution
+
+```{r fancy-explore, eval=TRUE}
+autoplot(fancy) +
+  xlab("Year") + ylab("Sales") 
+
+ggsubseriesplot(fancy) +
+  xlab("Year") + ylab("Sales")
+```
+
+**As we can see in the time series and subseries plot, there is trend and increasingly seasonality over time, so the rwdrift method fits best.**
+
+
+```{r fancy-forecast, eval=TRUE}
+fit_fancy_stlf <- stlf(fancy, method="rwdrift")
+
+fit_fancy_stlf_lambda <- stlf(fancy, method="rwdrift", lambda=BoxCox.lambda(fancy))
+
+autoplot(fit_fancy_stlf) + 
+  ggtitle("Forecast from STL w/o Box-Cox") +
+  xlab("Year") + ylab("Sales")
+
+autoplot(fit_fancy_stlf_lambda) +
+  ggtitle("Forecast from STL w/ Box-Cox") +
+  xlab("Year") + ylab("Sales")
+```
+
+**It seems that, since the data has increasing seasonality over time, the best forecast is the one with the Box-Cox transformation; it has smaller prediction intervals, so it fits the data better.**

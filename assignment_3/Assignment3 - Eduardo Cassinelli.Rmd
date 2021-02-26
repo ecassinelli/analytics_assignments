@@ -1,0 +1,243 @@
+---
+title: "Assignment 3"
+author: "Eduardo Cassinelli"
+subtitle: CMS2 529
+output:
+  html_document:
+    fig_height: 5
+    fig_width: 8
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      collapsed: no
+    number_sections: yes
+    theme: readable
+    highlight: tango
+  pdf_document:
+    toc: yes
+    toc_depth: '1'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(fpp2)
+options(digits=5)
+```
+
+Please submit a `zip` file including both the `Rmd` and `html` file produced by *knitting* this document with your modifications. Be sure to change the name of the author above.
+
+# [4 points] Forecasting unemployment benefits in Australia
+
+The `dole` dataset, included in the "fpp2" library, Monthly total of people on unemployment benefits in Australia from 1965 to 1992. Using one plot with several layers, please show the original dataset and forecasts over a *two year* horizon using the following methods:
+
+* Mean
+* Naive
+* Seasonal naive
+* Drift
+
+Please be sure to use use a legend indicating which line corresponds to which forecast and to please turn off the prediction interval. See [Simple Methods](https://otexts.com/fpp2/simple-methods.html) for examples.
+
+## [4 points] Solution: Forecasting unemployment benefits in Australia
+
+```{r dole-plot, echo=TRUE, eval=TRUE}
+autoplot(dole) + 
+  autolayer(meanf(dole, h=24),
+            series="Mean", PI=FALSE) +
+  autolayer(naive(dole, h=24),
+            series="Naive", PI=FALSE) + 
+  autolayer(snaive(dole, h=24),
+            series="Seasonal Naive", PI=FALSE) +
+  autolayer(rwf(dole, drift=TRUE, h=24),
+            series="Drift", PI=FALSE) + 
+  ggtitle("Forcast of monthly unemployment benefits in Australia") + xlab("Years") + ylab("# of People on unemployment benefits") + guides(colour=guide_legend(title="Forecast"))
+```
+
+
+# [2 points] Transforming  unemployment benefits in Australia
+
+Please apply the Box-Cox transformation with ideal lambda value to the `dole` dataset. Plot such that both are seen along the same faceted plot. You may find the following code to be helpful:
+
+```{r echo=TRUE, eval=FALSE}
+# Get help on ausbeer
+?ausbeer
+
+# Determine lambda
+lambda <- BoxCox.lambda(ausbeer)
+
+# Apply the Box-Cox transformation
+ausbeer.tran <- BoxCox(ausbeer, lambda=lambda)
+
+# Glue both the ausbeer.tran together to make them easier to plot
+toPlot <- cbind(ausbeer, ausbeer.tran)
+
+# Plot both facets
+autoplot(toPlot, facet=T) + 
+   xlab(“Year”) + 
+   ggtitle("Quarterly Australian Beer production with Transformation")
+```
+
+Do you consider the Box-Cox transformation to be helpful in forecasting the `dole` dataset?
+
+## [2 points] Solution: Transforming unemployment benefits in Australia
+
+```{r dole-transform, echo=TRUE, eval=TRUE}
+# Determine lambda
+lambda <- BoxCox.lambda(dole)
+
+# Apply the Box-Cox transformation
+dole.tran <- BoxCox(dole, lambda=lambda)
+```
+
+```{r dole-transform-plot, echo=TRUE, eval=TRUE}
+# Glue both the ausbeer.tran together to make them easier to plot
+toPlot <- cbind(dole, dole.tran)
+
+# Plot both facets
+autoplot(toPlot, facet=T) + 
+   xlab("Year") + 
+   ggtitle("Monthly total of people on unemployment benefits in Australia with Transformation")
+```
+
+> Do you consider the Box-Cox transformation to be helpful in forecasting the `dole` dataset?
+>
+> Yes, I do find it helpful for the forcast since it makes the variation more uniform.
+
+# [2 points] Transforming Canadian gas production 
+
+The `cangas` dataset, included n the "fpp2" library, contains monthly Canadian gas production in billions of cubic metres from January 1960 to February 2005. Please apply the Box-Cox transformation with ideal lambda value to the `cangas` dataset. Plot such that both are seen along the same faceted plot. Do you consider the Box-Cox transformation to be helpful in forecasting the `cangas` dataset?
+
+
+## [2 points] Solution: Transforming Canadian gas production
+
+```{r cangas-transform, echo=TRUE}
+# Determine lambda and transform
+lambda_cangas <- BoxCox.lambda(cangas)
+
+# Apply the Box-Cox transformation
+cangas.tran <- BoxCox(cangas, lambda=lambda_cangas)
+```
+
+```{r cangas-transform-plot, echo=TRUE}
+# Glue both the ausbeer.tran together to make them easier to plot
+toPlot <- cbind(cangas, cangas.tran)
+
+# Plot both facets
+autoplot(toPlot, facet=T) + 
+   xlab("Year") + 
+   ggtitle("Monthly Canadian gas production in billions of cubic metres with Transformation")
+```
+
+> Do you consider the Box-Cox transformation to be helpful in forecasting the `cangas` dataset?
+>
+> In this case I think it is not since the transformation does not change much the seasonality. Variation seems to be the same in both cases.
+
+# [3 points] How good is the seasonal naive forecast of Australian clay brick production?
+
+Calculate the residuals from a seasonal naïve forecast applied to the quarterly Australian clay brick production data, `bricksq`. Additionally, test if the residuals are white noise and normally distributed. The following code will help.
+
+```{r bricksq-residuals, echo=TRUE, eval=FALSE}
+fc <- snaive(bricksq)
+autoplot(fc)
+res <- residuals(fc)
+autoplot(res)
+checkresiduals(fc)
+```
+
+> What can you conclude?
+
+## [3 points] Solution: How good is the seasonal naive forecast of Australian clay brick production? 
+
+```{r bricksq-residuals-solution, echo=TRUE, eval=TRUE}
+fc <- snaive(bricksq)
+autoplot(fc)
+res <- residuals(fc)
+autoplot(res)
+checkresiduals(fc)
+```
+
+> What can you conclude?
+> 
+> The residuals data have white noise and it is not normally distirbuted.
+
+
+# [9 points] Forecasting IBM's closing price
+
+The dataset `ibmclose` contains the daily closing IBM stock price.
+
+1. [1 point] Plot the data to become familiar with it
+1. [1 point] Split the data into a training set of 300 observations and a test set of 69 observations. 
+1. [1 point] Plot `ibmclose` labeling the "training" and "test" series
+1. [2 points] Create a plot showing the `ibmclose` dataset with each of the naive, mean and drift benchmarks. Use a forecast interval equal to the size of the test interval.
+1. [2 points] Compare the `accuracy` of each of the naive, mean and drift benchmarks with the test dataset. Which has the smallest MASE?
+1. [2 points] Using the benchmark with lowest MASE, check its residuals? Does it resemble random noise?
+
+## [9 points] Solution: Forecasting IBM's closing price
+
+### [1 point] Plot the data to become familiar with it
+
+```{r ibmclose-plot, echo=TRUE, eval=TRUE}
+autoplot(ibmclose) + ggtitle("IBM Daily Closing Stocking Prices") + xlab("Days") + ylab("Prices")
+```
+
+### [1 point] Split the data into a training set of 300 observations and a test set of 69 observations.
+
+```{r ibmclos-split-data, echo=TRUE, eval=TRUE}
+ibm_train_data <- window(ibmclose,end=c(300))
+ibm_test_data <- window(ibmclose,start=c(301))
+```
+
+### [1 point] Plot `ibmclose` labeling the "training" and "test" series
+
+```{r ibmclose-split-plot, echo=TRUE, eval=TRUE}
+autoplot(ibm_train_data, series = "IBM train data") + 
+  autolayer(ibm_test_data, series = "IBM test data") + 
+  ggtitle("IBM Daily Closing Stock Prices") + 
+  xlab("Days") + ylab("Prices")
+```
+
+### [2 points] Create a plot showing the `ibmclose` dataset with each of the naive, mean and drift benchmarks. Use a forecast interval equal to the size of the test interval.
+
+```{r ibm-benchmarks, echo=TRUE, eval=TRUE}
+# Calculate h-value
+h <- length(ibm_test_data)
+
+# Calculate naive, mean and drift benchmarks
+ibm_naive <- naive(ibm_train_data, h=h)
+ibm_mean <- meanf(ibm_train_data, h=h)
+ibm_drift <- rwf(ibm_train_data, h=h, drift=TRUE)
+
+#Plotting the forecasts
+autoplot(ibm_train_data) +
+  autolayer(ibm_naive,
+    series="Naive", PI=FALSE) +
+  autolayer(ibm_mean,
+    series="Mean", PI=FALSE) +
+  autolayer(ibm_drift,
+    series="Drift Method", PI=FALSE) +
+  ggtitle("Forecasts for IBM daily Close") +
+  xlab("Year") + ylab("Prices") +
+  guides(colour=guide_legend(title="Forecast"))
+```
+
+### [2 points] Compare the `accuracy` of each of the naive, mean and drift benchmarks with the test dataset. Which has the smallest MASE?
+
+```{r ibm-accuracy, echo=TRUE, eval=TRUE}
+# Calculating the accuracy
+accuracy(ibm_naive, ibm_test_data)
+accuracy(ibm_mean, ibm_test_data)
+accuracy(ibm_drift,ibm_test_data)
+```
+> Answer: 
+> 
+> The smallest MASE value is on the drift forecast.
+
+### [2 points] Using the benchmark with lowest MASE, check its residuals. Does it resemble random noise?
+
+```{r ibm-check-residuals, echo=TRUE}
+# checkresiduals of benchmark with lowest MASE
+checkresiduals(ibm_drift)
+```
+
+> Does it resemble random noise?
+> 
+> No, it does not resemble white noise (3/25 = 0.12 = 12%).
